@@ -6,7 +6,6 @@ import java.io.IOException;
 
 public class TitleToIdDB extends WikiDB{
 
-
     public TitleToIdDB(boolean read_only, String dbfile) {
         this.dbType = "title2id";
         if (read_only) {

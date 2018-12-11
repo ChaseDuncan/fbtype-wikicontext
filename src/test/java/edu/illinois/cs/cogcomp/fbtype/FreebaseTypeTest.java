@@ -9,11 +9,17 @@ import static org.junit.Assert.*;
 
 public class FreebaseTypeTest {
     FreebaseType freebaseType = new FreebaseType();
+
+    String curIdPer = "15162268";  //person.author person
+    String curIdNull = "38608933"; //written_work
+    String curIdLoc = "29551290";  //location geography.glacier
+
+    String titlePer = "Richard_Irving_Dodge";  //person.author person
+    String titleNull = "The_Seven_Wonders_(Saylor_novel)"; //written_work
+    String titleLoc = "Mondor_Glacier";  //location geography.glacier
+
     @Test
     public void testGetCoNLLTypeByCurId(){
-        String curIdPer = "15162268";  //person.author person
-        String curIdNull = "38608933"; //written_work
-        String curIdLoc = "29551290";  //location geography.glacier
 
         assertEquals(freebaseType.getCoNLLTypeById(curIdPer), "person");
         assertEquals(freebaseType.getCoNLLTypeById(curIdNull), null);
@@ -22,9 +28,6 @@ public class FreebaseTypeTest {
 
     @Test
     public void testGetCourseTypesById(){
-        String curIdPer = "15162268";  //person.author person
-        String curIdNull = "38608933"; //written_work
-        String curIdLoc = "29551290";  //location geography.glacier
 
         assertTrue(new ArrayList(Arrays.asList("person"))
                 .equals(freebaseType.getCourseTypesById(curIdPer)));
@@ -37,9 +40,6 @@ public class FreebaseTypeTest {
 
     @Test
     public void testGetFineTypesById(){
-        String curIdPer = "15162268";  //person.author person
-        String curIdNull = "38608933"; //written_work
-        String curIdLoc = "29551290";  //location geography.glacier
 
         assertTrue(new ArrayList(Arrays.asList("person.author", "person"))
                 .equals(freebaseType.getFineTypesById(curIdPer)));
@@ -47,5 +47,37 @@ public class FreebaseTypeTest {
                 .equals(freebaseType.getFineTypesById(curIdNull)));
         assertTrue(new ArrayList(Arrays.asList("location", "geography.glacier"))
                 .equals(freebaseType.getFineTypesById(curIdLoc)));
+    }
+
+    @Test
+    public void testGetCoNLLTypeByTitle(){
+
+        assertEquals(freebaseType.getCoNLLTypeByTitle(titlePer), "person");
+        assertEquals(freebaseType.getCoNLLTypeByTitle(titleNull), null);
+        assertEquals(freebaseType.getCoNLLTypeByTitle(titleLoc), "location");
+
+    }
+
+    @Test
+    public void testGetCourseTypesTile(){
+
+        assertTrue(new ArrayList(Arrays.asList("person"))
+                .equals(freebaseType.getCourseTypesByTitle(titlePer)));
+        assertTrue(new ArrayList(Arrays.asList("written_work"))
+                .equals(freebaseType.getCourseTypesByTitle(titleNull)));
+        assertTrue(new ArrayList(Arrays.asList("geography", "location"))
+                .equals(freebaseType.getCourseTypesByTitle(titleLoc)));
+
+    }
+
+    @Test
+    public void testGetFineTypesByTitle(){
+
+        assertTrue(new ArrayList(Arrays.asList("person.author", "person"))
+                .equals(freebaseType.getFineTypesByTitle(titlePer)));
+        assertTrue(new ArrayList(Arrays.asList("written_work"))
+                .equals(freebaseType.getFineTypesByTitle(titleNull)));
+        assertTrue(new ArrayList(Arrays.asList("location", "geography.glacier"))
+                .equals(freebaseType.getFineTypesByTitle(titleLoc)));
     }
 }
