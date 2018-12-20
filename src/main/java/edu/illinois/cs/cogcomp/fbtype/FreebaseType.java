@@ -1,13 +1,12 @@
 package edu.illinois.cs.cogcomp.fbtype;
 
-import com.sun.org.apache.regexp.internal.RE;
 import edu.illinois.cs.cogcomp.fbtype.resources.FreebaseTypeDB;
 import edu.illinois.cs.cogcomp.fbtype.resources.TitleToIdDB;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.*;
 
 public class FreebaseType {
+
     private final boolean READ_ONLY = true;
     private final String typeDB = "/shared/experiments/cddunca2/freebase-type-project/db/types.db";
     private final String titleDB = "/shared/experiments/cddunca2/freebase-type-project/db/title2id.db";
@@ -24,6 +23,13 @@ public class FreebaseType {
         freebaseTypeDB = new FreebaseTypeDB(READ_ONLY, typeDB);
     }
 
+    /**
+     * Core function for retrieving types based on which subset of types is desired.
+     *
+     * @param typeString the string of type data which is stored in the DB
+     * @param setType which type set to return either, "FINE", "CoNLL" or "COURSE"
+     * @return
+     */
     private ArrayList<String> getTypes(String typeString, String setType){
         if (typeString.equals(null))
                 return null;
@@ -45,14 +51,29 @@ public class FreebaseType {
         return new ArrayList<String>(courseTypes);
     }
 
+    /**
+     * Returns course Freebase types of Wikipedia curid.
+     * @param curId  page to get types for
+     * @return
+     */
     public ArrayList<String> getCourseTypesById(String curId){
         return getTypes(freebaseTypeDB.getMap().get(curId), "COURSE");
     }
 
+    /**
+     * Returns fine Freebase types of Wikipedia curid.
+     * @param curId  page to get types for
+     * @return
+     */
     public ArrayList<String> getFineTypesById(String curId){
         return getTypes(freebaseTypeDB.getMap().get(curId), "FINE");
     }
 
+    /**
+     * Returns CoNLL Freebase types of Wikipedia curid.
+     * @param curId page to get types for
+     * @return
+     */
     public String getCoNLLTypeById(String curId){
         ArrayList<String> type = getTypes(freebaseTypeDB.getMap().get(curId), "CoNLL");
         if(type == null)
@@ -60,6 +81,7 @@ public class FreebaseType {
         return type.get(0);
     }
 
+    // The following 3 functions are as above but lookup by Wikipedia title
     public ArrayList<String> getCourseTypesByTitle(String title){
         String curId = titleToIdDB.getMap().get(title);
         return getTypes(freebaseTypeDB.getMap().get(curId), "COURSE");

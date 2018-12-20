@@ -3,6 +3,9 @@ package edu.illinois.cs.cogcomp.fbtype.resources;
 import org.mapdb.DB;
 import org.mapdb.HTreeMap;
 
+/**
+ * Abstract super class of the various DB managing classes.
+ */
 public class WikiDB {
     protected DB db;
     protected String dbType;
