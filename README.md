@@ -8,6 +8,7 @@ depending on the users needs. Some code examples follow.
 package edu.illinois.cs.cogcomp.fbtype;
 
 public static void main(String args[]){
+        FreebaseType freebaseType = new FreebaseType();
         String curIdPer = "15162268";  //person.author person
         String curIdNull = "38608933"; //written_work
         String curIdLoc = "29551290";  //location geography.glacier
