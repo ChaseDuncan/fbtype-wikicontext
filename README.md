@@ -5,7 +5,7 @@ It provides course types, fine types or CoNLL types, (person, location, organiza
 depending on the users needs. Some code examples follow.
 
 ```java
-package edu.illinois.cs.cogcomp.fbtype;
+import edu.illinois.cs.cogcomp.fbtype.FreebaseType;
 
 public static void main(String args[]){
         FreebaseType freebaseType = new FreebaseType();
