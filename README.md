@@ -40,9 +40,40 @@ public static void main(String args[]){
 
 ```
 
-Additionally, this module provides the context sentences from Wikipedia in which a given
-title appears along with the surface form of the referent page in the context.
+Additionally, this module provides the context sentences in which a given title appears in Wikipedia along
+with its referent surface form within that context.
 
 Example:
 
-TODO: add an example
+```java
+public static void main(String args[]){
+    
+    WikiContext wikiContext = new WikiContext();
+    
+    // access context by curid
+    String curId1 = "534366";
+    
+    ArrayList<Pair<String, String>> context1 = wikiContext.getContextByCurId(curId1);
+    System.out.println("SURFACE: " + context1.get(0).getFirst());
+    System.out.println("CONTEXT: " + context1.get(0).getSecond());
+    
+    // output:
+    // SURFACE: Barack Obama
+    // CONTEXT: In the 2008 presidential election , Democrat Barack Obama improved on Kerry 's showing , 
+    // and took 88.7 % of the vote in the Bronx to Republican John McCain 's 10.9 % .
+    
+    
+    // access context by title
+    String curId1 = "534366";
+    String title1 = "Barack_Obama";
+    context1 = wikiContext.getContextByTitle(title1);
+    System.out.println("SURFACE: " + context1.get(0).getFirst());
+    System.out.println("CONTEXT: " + context1.get(0).getSecond());
+    
+    // output:
+    // SURFACE: Barack Obama
+    // CONTEXT: In the 2008 presidential election , Democrat Barack Obama improved on Kerry 's showing , 
+    // and took 88.7 % of the vote in the Bronx to Republican John McCain 's 10.9 % .
+}
+
+```

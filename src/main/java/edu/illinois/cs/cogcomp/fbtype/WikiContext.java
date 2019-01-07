@@ -21,8 +21,8 @@ public class WikiContext {
 
     public WikiContext(String configFile) throws IOException {
         ResourceManager rm = new ResourceManager(configFile);
-        contextSentenceDB = new ContextSentenceDB(rm.getString("contextSentenceDB"));
-        titleToIdDB = new TitleToIdDB(rm.getString("titleToIdDBFile"));
+        contextSentenceDB = new ContextSentenceDB(rm.getString("sentenceDB"));
+        titleToIdDB = new TitleToIdDB(rm.getString("titleToIdDB"));
     }
 
     /**

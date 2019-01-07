@@ -56,7 +56,7 @@ public class DBUtils {
                 String[] ssplit = line.split("\t");
                 c++;
                 if (c % 100000 == 0) {
-                    System.out.println(c + " added to db.");
+                    LOGGER.info(c + " added to db.");
                 }
                 db.getMap().put(ssplit[keyIdx].trim(), ssplit[valIdx].trim());
             }
