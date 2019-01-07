@@ -1,4 +1,4 @@
-# Freebase/WikiContext
+# Freebase Type/WikiContext
 
 This module types Wikipedia pages using Freebase types. 
 It provides course types, fine types or CoNLL types, (person, location, organization),
