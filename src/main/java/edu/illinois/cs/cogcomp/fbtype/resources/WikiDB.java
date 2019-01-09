@@ -4,7 +4,7 @@ import org.mapdb.DB;
 import org.mapdb.HTreeMap;
 
 /**
- * Abstract super class of the various DB managing classes.
+ * Abstract super class of the various DB managing
  */
 public class WikiDB {
     protected DB db;

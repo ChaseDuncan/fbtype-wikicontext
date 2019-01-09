@@ -1,15 +1,50 @@
 package edu.illinois.cs.cogcomp.fbtype.resources;
 
 
+import edu.illinois.cs.cogcomp.annotation.TextAnnotationBuilder;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Sentence;
+import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
+import edu.illinois.cs.cogcomp.nlp.tokenizer.StatefulTokenizer;
+import edu.illinois.cs.cogcomp.nlp.utility.TokenizerTextAnnotationBuilder;
+import edu.illinois.cs.cogcomp.core.datastructures.Pair;
+
+import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.util.*;
 
 import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
+import org.mapdb.serializer.SerializerArrayTuple;
 
-public class ContextSentenceDB extends WikiDB{
+import org.json.JSONObject;
+
+import java.util.logging.Logger;
+
+public class ContextSentenceDB {
+
+    private final static Logger LOGGER = Logger.getLogger(ContextSentenceDB.class.getName());
+
+    private DB db;
+    private String dbType;
+    private NavigableSet<Object[]> multimap = null;
+    String titleIdDBFile;
+
+    public ArrayList<Pair<Pair<Integer, Integer> , String>> getContext(String title){
+       Set<Object[]> titleSubset = multimap.subSet(
+               new Object[]{title},
+               new Object[]{title, null, null, null});
+       ArrayList<Pair<Pair<Integer, Integer>, String>> contexts =
+               new ArrayList<>();
+       for(Object[] context : titleSubset){
+           Pair<Integer, Integer> offsets =
+                   new Pair<Integer, Integer>((Integer)context[1], (Integer) context[2]);
+           String sentence = (String) context[3];
+           contexts.add(new Pair<Pair<Integer, Integer>, String>(offsets, sentence));
+       }
+        return contexts;
+    }
 
     /**
      * Public facing constructor.
@@ -36,9 +71,8 @@ public class ContextSentenceDB extends WikiDB{
                     .closeOnJvmShutdown()
                     .readOnly()
                     .make();
-            map = db.hashMap("context-sentence")
-                    .keySerializer(Serializer.STRING)
-                    .valueSerializer(Serializer.STRING)
+            multimap = db.treeSet("context-sentence")
+                    .serializer(new SerializerArrayTuple(Serializer.STRING, Serializer.INTEGER, Serializer.INTEGER, Serializer.STRING))
                     .open();
         } else {
             if (new File(dbfile).exists()) {
@@ -48,20 +82,93 @@ public class ContextSentenceDB extends WikiDB{
             db = DBMaker.fileDB(dbfile)
                     .closeOnJvmShutdown()
                     .make();
-            map = db.hashMap("context-sentence")
-                    .keySerializer(Serializer.STRING)
-                    .valueSerializer(Serializer.STRING)
+            multimap = db.treeSet("context-sentence")
+                    .serializer(new SerializerArrayTuple(Serializer.STRING, Serializer.INTEGER, Serializer.INTEGER, Serializer.STRING))
                     .create();
         }
     }
 
+
+        /**
+     * The sentence DB doesn't follow the same pattern as the others. This function
+     * handles the particulars of that DB.
+     *
+     * @param wikiDataDir the path to the Wikipedia data
+     * @throws IOException
+     */
+    private void populateSentenceDB(String wikiDataDir) throws IOException {
+
+        File directory = new File(wikiDataDir);
+        File[] jsonFiles = directory.listFiles();
+        int c = 0;
+        int total = jsonFiles.length;
+
+        LOGGER.info("Building sentence database.");
+        TreeMap<String, Integer> titleCounts = new TreeMap<>();
+        for (File jsonFile : jsonFiles) {
+            BufferedReader br = new BufferedReader(new FileReader(jsonFile));
+            String line;
+            TextAnnotationBuilder textAnnotationBuilder =
+                    new TokenizerTextAnnotationBuilder(new StatefulTokenizer());
+
+            while ((line = br.readLine()) != null) {
+                JSONObject jsonObject = new JSONObject(line);
+                String text = jsonObject.getString("text");
+
+                if (text.equals(""))
+                    continue;
+
+                TextAnnotation ta = textAnnotationBuilder.createTextAnnotation(text);
+
+                JSONObject jsonArray = jsonObject.getJSONObject("hyperlinks");
+                Iterator<String> offsets = jsonArray.keys();
+                while (offsets.hasNext()) {
+                    String offsetString = offsets.next();
+                    String title = (String) jsonArray.get(offsetString);
+                    String curEntry = null;
+
+                    String[] offsetsSplit = offsetString.split(",");
+                    int firstOffset = Integer.parseInt(offsetsSplit[0].substring(1));
+                    int firstToken = ta.getTokenIdFromCharacterOffset(firstOffset);
+                    if (firstToken == -1)
+                        continue;
+                    int secondOffset = Integer.parseInt(offsetsSplit[1].substring(1,
+                            offsetsSplit[1].length() -1));
+                    Sentence contextSentence = ta.getSentenceFromToken(firstToken);
+                    String surface = ta.getText().substring(firstOffset, secondOffset);
+                    firstOffset = contextSentence.getText().indexOf(surface);
+                    secondOffset = firstOffset + surface.length();
+                    multimap.add(new Object[]{title, firstOffset, secondOffset, contextSentence.getText()});
+                    Integer curCount = titleCounts.get(title) ;
+                    if(null == curCount) {
+                        titleCounts.put(title, 1);
+                    }else{
+                        titleCounts.put(title, curCount+1);
+
+                    }
+                }
+            }
+            LOGGER.info("Completed " + c + " of " + total + ".");
+            c++;
+            BufferedWriter bw = new BufferedWriter(new FileWriter("counts"));
+            for(Map.Entry<String, Integer> entry : titleCounts.entrySet()){
+                if(entry.getValue() < 2)
+                    continue;
+                bw.write(entry.getKey() + " " + entry.getValue() + "\n");
+            }
+            break;
+        }
+    }
+
     public static void main(String[] args) throws IOException {
-        String configFile = "config/default.config";
+        //String configFile = "config/default.config";
+        String configFile = "config/test.config";
         if(args.length > 0)
             configFile = args[0];
         ResourceManager rm = new ResourceManager(configFile);
         ContextSentenceDB contextSentenceDB =
-                new ContextSentenceDB(false, rm.getString("sentenceDbFile"));
-        DBUtils.populateDB(contextSentenceDB, rm.getString("wikiDataDir"));
+                new ContextSentenceDB(false, rm.getString("sentenceDB"));
+        contextSentenceDB.titleIdDBFile = rm.getString("titleIdDB");
+        contextSentenceDB.populateSentenceDB(rm.getString("wikiDataDir"));
     }
 }

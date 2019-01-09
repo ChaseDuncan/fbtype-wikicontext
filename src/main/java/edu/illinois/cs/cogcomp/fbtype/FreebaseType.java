@@ -1,7 +1,7 @@
 package edu.illinois.cs.cogcomp.fbtype;
 
 import edu.illinois.cs.cogcomp.fbtype.resources.FreebaseTypeDB;
-import edu.illinois.cs.cogcomp.fbtype.resources.TitleToIdDB;
+import edu.illinois.cs.cogcomp.fbtype.resources.TitleIdDB;
 
 import java.util.*;
 
@@ -11,7 +11,7 @@ public class FreebaseType {
     private final String typeDB = "/shared/experiments/cddunca2/freebase-type-project/db/types.db";
     private final String titleDB = "/shared/experiments/cddunca2/freebase-type-project/db/title2id.db";
     private FreebaseTypeDB freebaseTypeDB = null;
-    private TitleToIdDB titleToIdDB = null;
+    private TitleIdDB titleIdDB = null;
 
     public FreebaseType(){
         this(true);
@@ -19,7 +19,7 @@ public class FreebaseType {
 
     public FreebaseType(boolean initTitleToIdDB){
         if(initTitleToIdDB)
-            titleToIdDB = new TitleToIdDB(READ_ONLY, titleDB);
+            titleIdDB = new TitleIdDB(READ_ONLY, titleDB);
         freebaseTypeDB = new FreebaseTypeDB(READ_ONLY, typeDB);
     }
 
@@ -83,17 +83,17 @@ public class FreebaseType {
 
     // The following 3 functions are as above but lookup by Wikipedia title
     public ArrayList<String> getCourseTypesByTitle(String title){
-        String curId = titleToIdDB.getMap().get(title);
+        String curId = titleIdDB.getCurId(title);
         return getTypes(freebaseTypeDB.getMap().get(curId), "COURSE");
     }
 
     public ArrayList<String> getFineTypesByTitle(String title){
-        String curId = titleToIdDB.getMap().get(title);
+        String curId = titleIdDB.getCurId(title);
         return getTypes(freebaseTypeDB.getMap().get(curId), "FINE");
     }
 
     public String getCoNLLTypeByTitle(String title){
-        String curId = titleToIdDB.getMap().get(title);
+        String curId = titleIdDB.getCurId(title);
         ArrayList<String> type = getTypes(freebaseTypeDB.getMap().get(curId), "CoNLL");
         if(type == null)
             return null;

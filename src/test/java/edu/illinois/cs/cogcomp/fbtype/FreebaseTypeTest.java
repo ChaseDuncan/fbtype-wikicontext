@@ -35,7 +35,9 @@ public class FreebaseTypeTest {
                 .equals(freebaseType.getCourseTypesById(curIdNull)));
         assertTrue(new ArrayList(Arrays.asList("geography", "location"))
                 .equals(freebaseType.getCourseTypesById(curIdLoc)));
-
+        System.out.println(freebaseType.getCourseTypesById(curIdPer));
+        System.out.println(freebaseType.getCourseTypesById(curIdNull));
+        System.out.println(freebaseType.getCourseTypesById(curIdLoc));
     }
 
     @Test
