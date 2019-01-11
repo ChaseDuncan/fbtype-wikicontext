@@ -4,10 +4,9 @@ package edu.illinois.cs.cogcomp.fbtype.resources;
 import edu.illinois.cs.cogcomp.annotation.TextAnnotationBuilder;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.Sentence;
 import edu.illinois.cs.cogcomp.core.datastructures.textannotation.TextAnnotation;
-import edu.illinois.cs.cogcomp.nlp.tokenizer.StatefulTokenizer;
-import edu.illinois.cs.cogcomp.nlp.utility.TokenizerTextAnnotationBuilder;
 import edu.illinois.cs.cogcomp.core.datastructures.Pair;
 
+import edu.illinois.cs.cogcomp.tokenizer.MultiLingualTokenizer;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
@@ -27,7 +26,6 @@ public class ContextSentenceDB {
     private final static Logger LOGGER = Logger.getLogger(ContextSentenceDB.class.getName());
 
     private DB db;
-    private String dbType;
     private NavigableSet<Object[]> multimap = null;
     String titleIdDBFile;
 
@@ -63,8 +61,6 @@ public class ContextSentenceDB {
      * @param dbfile the file where the db data resides
      */
     private ContextSentenceDB(boolean read_only, String dbfile){
-        dbType = "context-sentences";
-
         if (read_only) {
             db = DBMaker.fileDB(dbfile)
                     .fileChannelEnable()
@@ -96,7 +92,7 @@ public class ContextSentenceDB {
      * @param wikiDataDir the path to the Wikipedia data
      * @throws IOException
      */
-    private void populateSentenceDB(String wikiDataDir) throws IOException {
+    private void populateSentenceDB(String wikiDataDir, String language) throws IOException {
 
         File directory = new File(wikiDataDir);
         File[] jsonFiles = directory.listFiles();
@@ -108,8 +104,7 @@ public class ContextSentenceDB {
         for (File jsonFile : jsonFiles) {
             BufferedReader br = new BufferedReader(new FileReader(jsonFile));
             String line;
-            TextAnnotationBuilder textAnnotationBuilder =
-                    new TokenizerTextAnnotationBuilder(new StatefulTokenizer());
+            TextAnnotationBuilder textAnnotationBuilder = MultiLingualTokenizer.getTokenizer(language);
 
             while ((line = br.readLine()) != null) {
                 JSONObject jsonObject = new JSONObject(line);
@@ -144,7 +139,6 @@ public class ContextSentenceDB {
                         titleCounts.put(title, 1);
                     }else{
                         titleCounts.put(title, curCount+1);
-
                     }
                 }
             }
@@ -161,14 +155,18 @@ public class ContextSentenceDB {
     }
 
     public static void main(String[] args) throws IOException {
-        //String configFile = "config/default.config";
-        String configFile = "config/test.config";
-        if(args.length > 0)
-            configFile = args[0];
+        String configFile = args[0];
+
         ResourceManager rm = new ResourceManager(configFile);
+
         ContextSentenceDB contextSentenceDB =
                 new ContextSentenceDB(false, rm.getString("sentenceDB"));
         contextSentenceDB.titleIdDBFile = rm.getString("titleIdDB");
-        contextSentenceDB.populateSentenceDB(rm.getString("wikiDataDir"));
+
+        String language = "en";
+        if(rm.containsKey("language"))
+            language = rm.getString("language");
+
+        contextSentenceDB.populateSentenceDB(rm.getString("wikiDataDir"), language);
     }
 }

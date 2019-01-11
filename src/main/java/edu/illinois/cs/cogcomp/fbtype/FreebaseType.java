@@ -1,26 +1,29 @@
 package edu.illinois.cs.cogcomp.fbtype;
 
+import edu.illinois.cs.cogcomp.core.utilities.configuration.ResourceManager;
 import edu.illinois.cs.cogcomp.fbtype.resources.FreebaseTypeDB;
 import edu.illinois.cs.cogcomp.fbtype.resources.TitleIdDB;
+import sun.misc.Resource;
 
+import java.io.IOException;
 import java.util.*;
 
 public class FreebaseType {
 
     private final boolean READ_ONLY = true;
-    private final String typeDB = "/shared/experiments/cddunca2/freebase-type-project/db/types.db";
-    private final String titleDB = "/shared/experiments/cddunca2/freebase-type-project/db/title2id.db";
     private FreebaseTypeDB freebaseTypeDB = null;
     private TitleIdDB titleIdDB = null;
 
-    public FreebaseType(){
-        this(true);
+    public FreebaseType(String configFile) throws IOException {
+        ResourceManager rm = new ResourceManager(configFile);
+        initialize(rm);
+
     }
 
-    public FreebaseType(boolean initTitleToIdDB){
-        if(initTitleToIdDB)
-            titleIdDB = new TitleIdDB(READ_ONLY, titleDB);
-        freebaseTypeDB = new FreebaseTypeDB(READ_ONLY, typeDB);
+    private void initialize(ResourceManager rm){
+        if(rm.containsKey("titleIdDB"))
+            titleIdDB = new TitleIdDB(READ_ONLY, rm.getString("titleIdDB"));
+        freebaseTypeDB = new FreebaseTypeDB(READ_ONLY, rm.getString("freebaseTypeDB"));
     }
 
     /**
@@ -31,7 +34,7 @@ public class FreebaseType {
      * @return
      */
     private ArrayList<String> getTypes(String typeString, String setType){
-        if (typeString.equals(null))
+        if (typeString == null)
                 return null;
         String[] fineTypes = typeString.split(" ");
         if(setType.equals("FINE"))
@@ -46,9 +49,8 @@ public class FreebaseType {
             courseTypes.add(courseType);
         }
         if(setType.equals("CoNLL"))
-            return null;
-        assert setType.equals("COURSE");
-        return new ArrayList<String>(courseTypes);
+            return new ArrayList<>(Collections.singleton("miscellaneous"));
+        return new ArrayList<>(courseTypes);
     }
 
     /**

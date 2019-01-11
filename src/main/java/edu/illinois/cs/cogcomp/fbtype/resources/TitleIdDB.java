@@ -96,60 +96,35 @@ public class TitleIdDB {
      * Constructs db which has two maps. One which maps Wikipedia titles to Ids and
      * one which maps Ids to titles.
      *
-     * @param pageFile the file to use for constructing the DB
+     * @param dataFile the file to use for constructing the DB
      * @throws IOException
      */
-    public void populateDB(String pageFile)
+    public void populateDB(String dataFile)
             throws IOException {
-        LOGGER.info("Reading titles " + pageFile);
+        BufferedReader br = new BufferedReader(new FileReader(dataFile));
+        String line = null;
+        int c = 0;
+        int curIdIdx= 0;
+        int titleIdx = 1;
 
-        try {
-            InputStream in = new GZIPInputStream(new FileInputStream(pageFile));
-            BufferedReader br = new BufferedReader(new InputStreamReader(in));
-            String line = br.readLine();
-            while (line != null) {
-                if (line.contains("INSERT INTO")) {
-                    int start = line.indexOf("(");
-                    line = line.substring(start + 1, line.length());
-                    String[] tokens = line.split("\\),\\(");
-                    for (String t : tokens) {
-                        String[] ts = t.split("',");
-                        String[] cs = ts[0].split(",");
-                        if (cs[1].equals("0")) { // main namespace
-                            if (cs.length < 3) continue;
-                            if (cs[2].length() < 2) continue;
-
-                            // redirect
-                            String[] x = ts[2].split(",");
-                            if(x.length < 2 || x[1].equals("1"))
-                                continue;
-
-                            List<String> cst = Arrays.asList(cs);
-                            String tmp = cst.subList(2, cst.size()).stream().collect(joining(","));
-
-                            String id = cs[0];
-                            String title = tmp.substring(1);
-                            title = title.replaceAll("\\\\", "");
-                            titleToIdMap.put(title, id);
-                            idToTitleMap.put(id,title);
-                        }
-                    }
-                }
-                line = br.readLine();
+        while ((line = br.readLine()) != null) {
+            String[] ssplit = line.split("\t");
+            c++;
+            if (c % 100000 == 0) {
+                LOGGER.info(c + " added to db.");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            titleToIdMap.put(ssplit[titleIdx].trim(), ssplit[curIdIdx].trim());
+            idToTitleMap.put(ssplit[curIdIdx].trim(), ssplit[titleIdx].trim());
         }
 
+        br.close();
         closeDB(db);
     }
 
     public static void main(String[] args) throws IOException {
-        String configFile = "config/default.config";
-        if(args.length > 0)
-            configFile = args[0];
+        String configFile = args[0];
         ResourceManager rm = new ResourceManager(configFile);
-        String pageFile = rm.getString("pageFile");
+        String pageFile = rm.getString("curIds2Title");
         String dbFile = rm.getString("titleIdDB");
         TitleIdDB titleIdDB = new TitleIdDB(false, dbFile);
         titleIdDB.populateDB(pageFile);

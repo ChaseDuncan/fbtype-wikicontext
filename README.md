@@ -1,8 +1,10 @@
-# Freebase Type/WikiContext
+# Freebase Type/Wikipedia Context
 
-This module types Wikipedia pages using Freebase types. 
-It provides course types, fine types or CoNLL types, (person, location, organization),
-depending on the users needs. Some code examples follow.
+The Freebase Type/Wikipedia Context module provides entity types and sentence level context
+for Wikipedia entities in any language. The typing is course, fine or CoNLL types, 
+(person, location, organization, miscellaneous), depending on the users needs. 
+
+Some code examples follow.
 
 ```java
 import edu.illinois.cs.cogcomp.fbtype.FreebaseType;
@@ -40,40 +42,87 @@ public static void main(String args[]){
 
 ```
 
-Additionally, this module provides the context sentences in which a given title appears in Wikipedia along
-with its referent surface form within that context.
+The context module gives the context sentences in which a given title appears in Wikipedia (in any language) along
+offsets of the surface form of the title in that context.
 
 Example:
 
 ```java
 public static void main(String args[]){
     
-    WikiContext wikiContext = new WikiContext();
+    WikiContext wikiContext = new WikiContext("config/test.config");
+    ArrayList<Pair<Pair<Integer, Integer>, String>> context1 = null;
     
-    // access context by curid
-    String curId1 = "534366";
+    String title1 = "\"Weird_Al\"_Yankovic";
     
-    ArrayList<Pair<String, String>> context1 = wikiContext.getContextByCurId(curId1);
-    System.out.println("SURFACE: " + context1.get(0).getFirst());
-    System.out.println("CONTEXT: " + context1.get(0).getSecond());
-    
-    // output:
-    // SURFACE: Barack Obama
-    // CONTEXT: In the 2008 presidential election , Democrat Barack Obama improved on Kerry 's showing , 
-    // and took 88.7 % of the vote in the Bronx to Republican John McCain 's 10.9 % .
-    
-    
-    // access context by title
-    String curId1 = "534366";
-    String title1 = "Barack_Obama";
     context1 = wikiContext.getContextByTitle(title1);
-    System.out.println("SURFACE: " + context1.get(0).getFirst());
-    System.out.println("CONTEXT: " + context1.get(0).getSecond());
-    
+    for(Object context : context1)
+        System.out.println(context);
+                
     // output:
-    // SURFACE: Barack Obama
-    // CONTEXT: In the 2008 presidential election , Democrat Barack Obama improved on Kerry 's showing , 
-    // and took 88.7 % of the vote in the Bronx to Republican John McCain 's 10.9 % .
+    //((0, 17), Weird Al Yankovic made a song parody of the virus titled "Virus Alert".)
+    //((0, 19), "Weird Al" Yankovic's "Angry White Boy Polka" medley included Limp Bizkit's song "My Way".)
+    //((5, 22), When Weird Al Yankovic was asked whether "Mad" had had any influence in putting him on a road 
+    // to a career in parody, the musician replied, "[It was] more like going off a cliff.")
+    // ...
 }
 
 ```
+
+We can also retrieve context by curid:
+
+```java
+public static void main(String args[]){
+    
+    WikiContext wikiContext = new WikiContext("config/test.config");
+    ArrayList<Pair<Pair<Integer, Integer>, String>> context1 = null;
+    
+    String curId1 = "534366";
+    
+    context1 = wikiContext.getContextByTitle(curId1);
+    for(Object context : context1)
+        System.out.println(context);
+                
+    
+    // output:
+    //((0, 12), Barack Obama was born and raised in Hawaii (other than a four-year period of his childhood spent in 
+    // Indonesia) and made Illinois his home and base after completing law school and later represented the state in 
+    // the US Senate.)
+    //((0, 15), President Obama, Secretary of Defense Leon Panetta, and Admiral Mike Mullen, Chairman of the Joint 
+    // Chiefs of Staff, sent the certification required by the Repeal Act to Congress on July 22, 2011, setting the 
+    // end of DADT for September 20, 2011.)
+    //((6, 18), After Barack Obama won the general election, Jello wrote an open letter making suggestions on how to 
+    // run his term as president.)
+    //((6, 18), After Barack Obama, Powell was only the second African American to receive electoral votes in a 
+    // presidential election.)
+    // ...
+}
+
+```
+
+The MultilingualFreebaseType and MultilingualWikiContext classes provide the ability to retrieve type and context
+for any Wikipedia page in any language so long as it has a corresponding English page. Queries can either be in the
+target language of English. Here of some examples of this in Spanish:
+
+```java
+    String config = "config/es-test.config";
+    MultilingualWikiContext multilingualWikiContext = new MultilingualWikiContext(config);
+
+    MultilingualFreebaseType freebaseType = new MultilingualFreebaseType(config);
+    
+    ArrayList<Pair<Pair<Integer, Integer>, String>> esContext =
+            multilingualWikiContext.getContextByENTitle("Hydrochloric_acid");
+    
+    System.out.println(esContext.get(2));
+    // Output:
+    // ((29, 46),"Es atacado lentamente por el ácido clorhídrico (HCl) en presencia de aire.")
+    
+    
+    System.out.println(freebaseType.getFineTypesByTitle("Ácido_clorhídrico"));
+    // Output:
+    // [chemistry]
+```
+
+All of this functionality is supported by a number of resources which must be built individually based on what
+the user needs. The module fbtype.resources holds a number of classes which build and manage these resources.
+For each resource a script and configuration file is provided.

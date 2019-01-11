@@ -14,21 +14,10 @@ public class FreebaseTypeDB {
 
     private final static Logger LOGGER = Logger.getLogger(FreebaseTypeDB.class.getName());
     private DB db;
-    private String dbType;
     private HTreeMap<String, String> map;
+
     public HTreeMap<String, String> getMap(){
         return map;
-    }
-
-    public DB getDb(){
-        return db;
-    }
-
-    public String getDBType(){
-        return dbType;
-    }
-    public FreebaseTypeDB(String dbFile){
-        this(true, dbFile);
     }
 
     /**
@@ -44,7 +33,6 @@ public class FreebaseTypeDB {
     }
 
     public FreebaseTypeDB(boolean read_only, String dbfile){
-        dbType = "id2type";
         if (read_only) {
             db = DBMaker.fileDB(dbfile)
                     .fileChannelEnable()
